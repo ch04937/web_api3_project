@@ -1,9 +1,15 @@
 const express = require('express');
+const helmet = require('helmet');
+
+const secrets = require('./config/secrets.js');
+
+console.log('envioronment:', secrets.environment);
 
 const server = express();
 
 //global middleware
 server.use(express.json());
+server.use(helmet());
 server.use(logger);
 
 //route handlers
