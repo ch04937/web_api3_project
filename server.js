@@ -1,23 +1,23 @@
 const express = require('express');
 
-const postRouter = require('./routes/posts/postRouter')
-const userRouter = require('./routes/users/userRouter')
-
 const server = express();
 
 //global middleware
 server.use(express.json());
-// server.use(logger);
-
-//we can use middleware locally 
-server.use('/post', postRouter);
-server.use('/user', userRouter)
-
+server.use(logger);
 
 //route handlers
-server.get('/', (req, res) => {
-  res.status(200).json({ api: 'its working its working '})
-})
+const postRouter = require('./routes/posts/postRouter');
+const userRouter = require('./routes/users/userRouter');
+
+//we can use middleware locally 
+server.use('/api/post', postRouter);
+server.use('/api/user', userRouter)
+
+//test postman to check working request
+// server.get('/', (req, res) => {
+//   res.status(200).json({ api: 'its working its working '})
+// })
 
 
 server.get('/', (req, res) => {
