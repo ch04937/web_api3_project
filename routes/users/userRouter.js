@@ -1,12 +1,19 @@
 const express = require('express');
-
 const User = require('./userDb.js');
 
 const router = express.Router();
 
 
-router.post('/', (req, res) => {
-
+router.post('/', validateUser, (req, res) => {
+    const user = req.body;
+    User.insert(user)
+    .then(user => {
+        res.status(201).json(user);
+    })
+    .catch(err => {
+        console.log(err)
+        res.status(500).json({error: 'error inserting user'})
+    })
 });
 
 router.post('/:id/posts', (req, res) => {
@@ -40,28 +47,50 @@ router.get('/:id', validateUserId, (req, res) => {
     });
 
 
-router.get('/:id/posts', (req, res) => {
-
+router.get('/:id/posts',validateUserId, (req, res) => {
+    const { id } = req.params;
+    User.getUserPosts(id)
+    .then(post => {
+        res.status(200).json(posts)
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json({error: 'error getting user post'})
+    })
 });
 
-router.delete('/:id', (req, res) => {
-
+router.delete('/:id', validateUserId, (req, res) => {
+    const { id } = req.user;
+    User.remove(id)
+    .then(() => {
+        res.status(204).end()
+    })
+    .catch( err => {
+        console.log(err);
+        res.status(500).json({error: 'error deleting user'})
+    })
 });
 
 router.put('/:id', validateUserId, (req, res) => {
     console.log('get user')
     const { id } = req.params;
-    // const { name } = req.body;
-    User.getById(id)
-    .then(user => {
-        if(user){
-            User.update(id, { name })
-            .then(updated => {
-                res.status(200).json(updated);
+    const { name } = req.body;
+    User.update(id, {name})
+    .then(updated => {
+        if(updated){
+            User.getById(id)
+            .then(user => {
+                res.status(200).json(user);
             })
-        }else{
-            res.status(404).json({error: 'user with that id odes not exist'})
+            .catch(err => {
+                console.log(err);
+                res.status(500).json({error: 'error getting user'})
+            })
         }
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json({error: 'error getting updating user'})
     })
 
 });
@@ -69,7 +98,7 @@ router.put('/:id', validateUserId, (req, res) => {
 //custom middleware
 
 function validateUserId(req, res, next) {
-    const { id } = req.params.kd;
+    const { id } = req.params.id;
     User.getById(id)
     .then(user => {
         if(user){
@@ -84,6 +113,15 @@ function validateUserId(req, res, next) {
 };
 
 function validateUser(req, res, next) {
+    const { name } = req.body;
+    if(!name) {
+        return res.status(400).json({error:'name required'})
+    }
+    if (typeof name !== 'string'){
+        return res.status(400).json({error: 'name must be string'})
+    }
+    req.body = {name}
+    next();
 
 };
 
